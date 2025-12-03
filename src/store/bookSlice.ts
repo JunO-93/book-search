@@ -9,6 +9,7 @@ interface bookState {
     totalCount: number
     currentPage: number
     query: string
+    isEnd: boolean
 }
 
 const initialState: bookState = {
@@ -17,15 +18,16 @@ const initialState: bookState = {
     error: null,
     totalCount: 0,
     currentPage: 1,
-    query: ''
+    query: '',
+    isEnd: false
 }
 
 //비동기 액션
 export const fetchBooks = createAsyncThunk(
     'book/fetchBooks',
-    async({query,page}:{query:string; page:number}) => {
+    async({query,page,loadMore = false}:{query:string; page:number, loadMore?:boolean}) => {
         const response = await searchBooks(query,page)
-        return {...response, query, page}
+        return {...response, query, page, loadMore}
     }
 )
 
@@ -38,6 +40,7 @@ const bookSlice = createSlice({
             state.totalCount = 0
             state.currentPage = 1
             state.query = ''
+            state.isEnd = false
         },
     },
     extraReducers: (builder) => {
@@ -48,10 +51,16 @@ const bookSlice = createSlice({
             })
             .addCase(fetchBooks.fulfilled, (state, action) => {
                 state.loading = false
-                state.books = action.payload.documents
+                // loadMore면 기존 목록에 추가, 아니면 새로 덮어쓰기
+                if (action.payload.loadMore) {
+                    state.books = [...state.books, ...action.payload.documents]
+                } else {
+                    state.books = action.payload.documents
+                }
                 state.query = action.payload.query
                 state.currentPage = action.payload.page
                 state.totalCount = action.payload.meta.total_count
+                state.isEnd = action.payload.meta.is_end
             })
             .addCase(fetchBooks.rejected, (state, action) => {
                 state.loading = false
