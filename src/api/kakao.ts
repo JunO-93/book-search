@@ -4,7 +4,7 @@ import type {BookSearchResponse} from "../types/books.ts";
 const kakaoApi = axios.create({
     baseURL: 'https://dapi.kakao.com',
     headers: {
-        Authorization: `KaKaoAK ${import.meta.env.VITE_KAKAO_API_KEY}`,
+        Authorization: `KakaoAK ${import.meta.env.VITE_KAKAO_API_KEY}`,
     },
 })
 
